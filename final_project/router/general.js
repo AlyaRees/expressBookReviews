@@ -1,5 +1,4 @@
 const express = require('express');
-const axios = require('axios');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
@@ -42,52 +41,68 @@ public_users.get('/books',(req, res) => {
 
 // Get book details based on ISBN
 public_users.get('/books/isbn/:isbn',function (req, res) {
-    const isbn = req.params.isbn;
-    const book = books[isbn];
-    if (book) {
-  return res.status(200).json(book); 
-  } else {
-    res.status(404).json({message: "Cannot find book by ISBN."});
-  }
- });
-  
+    const getbooks_isbn = new Promise((resolve, reject)=>{
+        const isbn = req.params.isbn;
+        if (req.params.isbn <= 10){
+            resolve(res.send(books[isbn]));
+        } else {
+            reject(res.send("Cannot find book by ISBN."));
+        }
+    });
+    getbooks_isbn.then(function () { 
+        console.log("Promise for task 11 resolved!");
+    }).catch(function () { 
+console.log("Book cannot be found by ISBN.");
+    });
+});
+
 // Get book details based on author
 public_users.get('/books/author/:author',function (req, res) {
-  const get_books_author = new Promise((resolve,reject)=>{
+
+const get_books_author = new Promise((resolve, reject) => {
 
     let booksbyauthor = [];
     let isbns = Object.keys(books);
-    isbns.forEach((isbn)=> {
-        if(books[isbn]["author"] === req.params.author) {
-booksbyauthor.push({"isbn": isbn,
+    isbns.forEach((isbn) => {
+if(books[isbn]["author"] === req.params.author) {
+    booksbyauthor.push({"isbn":isbn,
 "title":books[isbn]["title"],
 "reviews":books[isbn]["reviews"]});
 resolve(res.send(JSON.stringify({booksbyauthor},null,4)));
-        }
-  });
-  reject(res.send("The mentioned author does not exist"));
+}
+    });
+    reject(res.send("Cannot find book by author."));
 });
-
-//resume HERE! Use the discussion forum to help you write the code for the .then method for the console.logs and a catch method! Enjoy! You have learnt so much more in a shorter amount of time studying this way, keep it up!
-
-  const authorBook = Object.values(books).filter (book => book.author === author);
-  if (authorBook.length > 0 ) {
-    return res.status(200).json(authorBook);
-  } else {
-    res.status(404).json({message: "Cannot find book by author."});
-  }
+get_books_author.then(function() {
+console.log("Promise for task 12 resolved!");
+}).catch(function() {
+console.log("Cannot find book by author.");
+});
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  const title = req.params.title;
-  const titleBook = Object.values(books).filter(book => book.title === title);
-  if (titleBook.length > 0) {
-    return res.status(200).json(titleBook)
-  } else {
-    return res.status(404).json({message: "Cannot find book by title."});
-  }
-});
+public_users.get('/books/title/:title',function (req, res) {
+
+    const get_books_title = new Promise((resolve, reject) => {
+
+        let booksbytitle = [];
+        let isbns = Object.keys(books);
+        isbns.forEach((isbn) => {
+    if(books[isbn]["title"] === req.params.title) {
+        booksbytitle.push({"isbn":isbn,
+    "author":books[isbn]["author"],
+    "reviews":books[isbn]["reviews"]});
+    resolve(res.send(JSON.stringify({booksbytitle},null,4)));
+    }
+        });
+        reject(res.send("Cannot find book by title."));
+    });
+    get_books_title.then(function() {
+    console.log("Promise for task 12 resolved!");
+    }).catch(function() {
+    console.log("Cannot find book by title.");
+    });
+    });
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res){
